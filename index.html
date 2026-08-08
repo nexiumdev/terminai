@@ -151,7 +151,7 @@
         }
         .btn-rename { color: var(--string); }
         .btn-rename:hover { background: rgba(165,214,255,0.1); }
-        
+
         .btn-delete { color: var(--err-color); }
         .btn-delete:hover { background: rgba(255,123,114,0.1); }
 
@@ -205,7 +205,7 @@
         .key-btn-danger:hover { filter: brightness(1.1); }
 
         .log-entry { margin-bottom: 16px; word-break: break-word; overflow-wrap: break-word; max-width: 900px; }
-        
+
         .user-line { 
             color: var(--user-prompt); 
             font-weight: bold; 
@@ -214,7 +214,7 @@
             word-break: break-word;
             overflow-wrap: break-word;
         }
-        
+
         .ia-response { 
             color: var(--text-main); 
             margin-top: 5px;
@@ -227,7 +227,7 @@
         .ia-response strong { color: var(--function); font-weight: bold; }
         .ia-response ul, .ia-response ol { padding-left: 20px; margin: 6px 0; }
         .ia-response li { margin-bottom: 4px; }
-        
+
         .terminal pre {
             background-color: #010409 !important;
             border-radius: 6px;
@@ -259,7 +259,7 @@
         }
 
         .img-result { 
-            max-width: 512px; 
+            max-width: 1024px; 
             border-radius: 8px; 
             margin-top: 10px; 
             border: 2px solid var(--border-color); 
@@ -304,7 +304,7 @@
     <div id="main-wrapper">
         <div id="terminal" onclick="document.getElementById('terminal-input').focus()">
             <div id="output-area">
-                SYS_CORE v9.8 - Smart Terminal.<br>
+                SYS_CORE v9.9 - Smart Terminal.<br>
                 Comandos: <code style="color:var(--string)">/chave</code> | <code style="color:var(--string)">/historico</code> | <code style="color:var(--string)">/novo chat</code> | <code style="color:var(--string)">/modo pessoal</code> | <code style="color:var(--string)">/criar imagem: [descrição]</code><br>--------------------------------------------------<br>
             </div>
 
@@ -396,7 +396,7 @@
         }
 
         function carregarChatAtivo() {
-            outputArea.innerHTML = `SYS_CORE v9.8 - Smart Terminal.<br>Comandos: <code style="color:var(--string)">/chave</code> | <code style="color:var(--string)">/historico</code> | <code style="color:var(--string)">/novo chat</code> | <code style="color:var(--string)">/modo pessoal</code> | <code style="color:var(--string)">/criar imagem: [descrição]</code><br>--------------------------------------------------<br>`;
+            outputArea.innerHTML = `SYS_CORE v9.9 - Smart Terminal.<br>Comandos: <code style="color:var(--string)">/chave</code> | <code style="color:var(--string)">/historico</code> | <code style="color:var(--string)">/novo chat</code> | <code style="color:var(--string)">/modo pessoal</code> | <code style="color:var(--string)">/criar imagem: [descrição]</code><br>--------------------------------------------------<br>`;
             const chat = chats.find(c => c.id == chatAtualId);
             if (!chat) return;
 
@@ -538,13 +538,12 @@
         }
 
         async function gerarImagem(promptText) {
-            appendHtml(`<div class="ia-response">⚙️ Gerando imagem... (Aguarde)</div>`);
-            
-            // Pega apenas as primeiras 15 palavras se o texto for muito longo, para não estourar a URL
+            appendHtml(`<div class="ia-response">⚙️ Gerando imagem... (Aguarde, resolução 1024x1024)</div>`);
+
             let promptCurto = promptText.split(' ').slice(0, 15).join(' ');
-            const promptEncoded = encodeURIComponent(promptCurto);
-            const imageUrl = `https://image.pollinations.ai/prompt/${promptEncoded}?width=512&height=512&nologo=true`;
-            
+            const promptEncoded = encodeURIComponent(promptCurto + ", ultra-high resolution, 1024x1024, photorealistic");
+            const imageUrl = `[https://image.pollinations.ai/prompt/$](https://image.pollinations.ai/prompt/$){promptEncoded}?width=1024&height=1024&nologo=true`;
+
             const img = new Image();
             img.src = imageUrl;
             img.onload = () => {
@@ -633,7 +632,7 @@
             appendHtml(`<span class="user-line">C:\\> ${escapeHtml(texto)}</span>`);
 
             const chat = chats.find(c => c.id == chatAtualId);
-            
+
             if (chat.mensagens.length === 0) {
                 chat.titulo = texto.length > 20 ? texto.substring(0, 20) + "..." : texto;
             }
@@ -667,13 +666,13 @@
                 if (response.ok) {
                     const data = await response.json();
                     let respostaIA = data.choices[0].message.content;
-                    
+
                     chat.mensagens.push({ role: 'assistant', content: respostaIA });
                     salvarDados();
 
                     const htmlFormatado = marked.parse(respostaIA);
                     appendHtml(`<div class="ia-response">${htmlFormatado}</div>`);
-                    
+
                     outputArea.querySelectorAll('pre code').forEach((block) => {
                         hljs.highlightElement(block);
                     });
@@ -689,7 +688,7 @@
         }
 
         function escapeHtml(text) {
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            return text.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">");
         }
     </script>
 </body>
