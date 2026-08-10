@@ -1,705 +1,1391 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <title>www.terminai.com.br</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
-    <style>
-        :root {
-            --bg-color: #0d1117;
-            --terminal-bg: #161b22;
-            --border-color: #30363d;
-            --text-main: #c9d1d9;
-            --string: #a5d6ff;
-            --function: #d2a8ff;
-            --comment: #8b949e;
-            --user-prompt: #f0883e;
-            --err-color: #ff7b72;
-            --mode-tec: #3fb950;
-            --mode-pes: #58a6ff;
-        }
+<meta charset="UTF-8">
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'Consolas', 'Courier New', monospace;
-            margin: 0;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            height: 95vh;
-            overflow: hidden;
-            font-size: 14px;
-        }
+<title>www.terminai.com.br</title>
 
-        #header {
-            font-size: 12px;
-            color: var(--comment);
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 6px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-        }
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-        #main-wrapper {
-            display: flex;
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-        }
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
 
-        #terminal {
-            flex: 1;
-            background-color: var(--terminal-bg);
-            border: 1px solid var(--border-color);
-            padding: 20px 40px;
-            overflow-y: auto;
-            line-height: 1.6;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-            word-break: break-word;
-            overflow-wrap: break-word;
-        }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
-        #floating-history {
-            position: absolute;
-            right: 20px;
-            top: 45px;
-            width: 380px;
-            max-height: 75vh;
-            background: rgba(13, 17, 23, 0.95);
-            backdrop-filter: blur(4px);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            z-index: 200;
-            display: none;
-            flex-direction: column;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        }
 
-        #floating-history.active { display: flex; }
 
-        .history-header {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 10px;
-            border-bottom: 1px dashed var(--border-color);
-            padding-bottom: 6px;
-        }
+<style>
 
-        .close-history {
-            cursor: pointer;
-            color: var(--err-color);
-            font-weight: bold;
-            font-size: 14px;
-            background: transparent;
-            border: none;
-            padding: 2px 6px;
-        }
-        .close-history:hover { background: rgba(255,123,114,0.1); border-radius: 3px; }
+:root {
 
-        #history-list {
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            max-height: 60vh;
-        }
+--bg-color: #0d1117;
 
-        .history-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            border-bottom: 1px solid rgba(48, 54, 61, 0.4);
-            padding-bottom: 6px;
-        }
+--terminal-bg: #161b22;
 
-        .history-item {
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: bold;
-            background: transparent;
-            border: none;
-            text-align: left;
-            padding: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            flex: 1;
-        }
-        .history-item:hover { opacity: 0.8; }
+--border-color: #30363d;
 
-        .history-actions { display: flex; gap: 6px; }
+--text-main: #c9d1d9;
 
-        .action-btn {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: bold;
-            padding: 2px 5px;
-            border-radius: 3px;
-        }
-        .btn-rename { color: var(--string); }
-        .btn-rename:hover { background: rgba(165,214,255,0.1); }
+--string: #a5d6ff;
 
-        .btn-delete { color: var(--err-color); }
-        .btn-delete:hover { background: rgba(255,123,114,0.1); }
+--function: #d2a8ff;
 
-        .key-panel {
-            background: #010409;
-            border: 1px solid var(--border-color);
-            padding: 12px;
-            border-radius: 6px;
-            margin: 10px 0;
-            max-width: 900px;
-        }
+--comment: #8b949e;
 
-        .key-input {
-            width: 100%;
-            background: #161b22;
-            border: 1px solid var(--border-color);
-            color: #fff;
-            padding: 8px;
-            font-family: inherit;
-            font-size: 13px;
-            border-radius: 4px;
-            margin-top: 6px;
-            outline: none;
-        }
-        .key-input:focus { border-color: var(--mode-tec); }
+--user-prompt: #f0883e;
 
-        .key-btn {
-            background: var(--mode-tec);
-            color: #000;
-            border: none;
-            padding: 6px 12px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 8px;
-            font-family: inherit;
-        }
-        .key-btn:hover { filter: brightness(1.1); }
+--err-color: #ff7b72;
 
-        .key-btn-danger {
-            background: var(--err-color);
-            color: #fff;
-            border: none;
-            padding: 6px 12px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 8px;
-            font-family: inherit;
-        }
-        .key-btn-danger:hover { filter: brightness(1.1); }
+--mode-tec: #3fb950;
 
-        .log-entry { margin-bottom: 16px; word-break: break-word; overflow-wrap: break-word; max-width: 900px; }
+--mode-pes: #58a6ff;
 
-        .user-line { 
-            color: var(--user-prompt); 
-            font-weight: bold; 
-            margin-top: 10px;
-            display: block;
-            word-break: break-word;
-            overflow-wrap: break-word;
-        }
+}
 
-        .ia-response { 
-            color: var(--text-main); 
-            margin-top: 5px;
-            padding-left: 12px;
-            border-left: 2px solid var(--border-color);
-            word-break: break-word;
-            overflow-wrap: break-word;
-        }
 
-        .ia-response strong { color: var(--function); font-weight: bold; }
-        .ia-response ul, .ia-response ol { padding-left: 20px; margin: 6px 0; }
-        .ia-response li { margin-bottom: 4px; }
 
-        .terminal pre {
-            background-color: #010409 !important;
-            border-radius: 6px;
-            padding: 10px !important;
-            margin: 8px 0 !important;
-            border: 1px solid var(--border-color);
-            overflow-x: auto;
-            white-space: pre-wrap;
-            word-break: break-all;
-            max-width: 850px;
-        }
-        .terminal code { font-family: 'Consolas', monospace !important; font-size: 13px !important; }
-        .ia-response p code {
-            background-color: rgba(110,118,129,0.2);
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: var(--string);
-            font-weight: bold;
-            word-break: break-all;
-        }
+body {
 
-        .err-response { 
-            color: var(--err-color); 
-            background-color: rgba(255, 123, 114, 0.1);
-            padding: 8px;
-            border-radius: 4px;
-            margin-top: 5px;
-            max-width: 900px;
-        }
+background-color: var(--bg-color);
 
-        .img-result { 
-            max-width: 512px; 
-            border-radius: 8px; 
-            margin-top: 10px; 
-            border: 2px solid var(--border-color); 
-            display: block; 
-        }
+color: var(--text-main);
 
-        #input-line {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-            font-family: 'Consolas', monospace;
-            max-width: 900px;
-        }
+font-family: 'Consolas', 'Courier New', monospace;
 
-        #prompt-symbol {
-            color: var(--user-prompt);
-            font-weight: bold;
-            margin-right: 8px;
-            white-space: nowrap;
-        }
+margin: 0;
 
-        #terminal-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #fff;
-            font-family: inherit;
-            font-size: 14px;
-            outline: none;
-            caret-color: var(--user-prompt);
-        }
-    </style>
+padding: 10px;
+
+display: flex;
+
+flex-direction: column;
+
+height: 95vh;
+
+overflow: hidden;
+
+font-size: 14px;
+
+}
+
+
+
+#header {
+
+font-size: 12px;
+
+color: var(--comment);
+
+border-bottom: 1px solid var(--border-color);
+
+padding-bottom: 6px;
+
+margin-bottom: 10px;
+
+display: flex;
+
+justify-content: space-between;
+
+font-weight: bold;
+
+}
+
+
+
+#main-wrapper {
+
+display: flex;
+
+flex: 1;
+
+position: relative;
+
+overflow: hidden;
+
+}
+
+
+
+#terminal {
+
+flex: 1;
+
+background-color: var(--terminal-bg);
+
+border: 1px solid var(--border-color);
+
+padding: 20px 40px;
+
+overflow-y: auto;
+
+line-height: 1.6;
+
+border-radius: 6px;
+
+box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+
+display: flex;
+
+flex-direction: column;
+
+word-break: break-word;
+
+overflow-wrap: break-word;
+
+}
+
+
+
+#floating-history {
+
+position: absolute;
+
+right: 20px;
+
+top: 45px;
+
+width: 380px;
+
+max-height: 75vh;
+
+background: rgba(13, 17, 23, 0.95);
+
+backdrop-filter: blur(4px);
+
+border: 1px solid var(--border-color);
+
+border-radius: 8px;
+
+padding: 15px;
+
+z-index: 200;
+
+display: none;
+
+flex-direction: column;
+
+box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+
+}
+
+
+
+#floating-history.active { display: flex; }
+
+
+
+.history-header {
+
+display: flex;
+
+justify-content: flex-end;
+
+margin-bottom: 10px;
+
+border-bottom: 1px dashed var(--border-color);
+
+padding-bottom: 6px;
+
+}
+
+
+
+.close-history {
+
+cursor: pointer;
+
+color: var(--err-color);
+
+font-weight: bold;
+
+font-size: 14px;
+
+background: transparent;
+
+border: none;
+
+padding: 2px 6px;
+
+}
+
+.close-history:hover { background: rgba(255,123,114,0.1); border-radius: 3px; }
+
+
+
+#history-list {
+
+overflow-y: auto;
+
+display: flex;
+
+flex-direction: column;
+
+gap: 12px;
+
+max-height: 60vh;
+
+}
+
+
+
+.history-row {
+
+display: flex;
+
+align-items: center;
+
+justify-content: space-between;
+
+gap: 10px;
+
+border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+
+padding-bottom: 6px;
+
+}
+
+
+
+.history-item {
+
+cursor: pointer;
+
+font-size: 13px;
+
+font-weight: bold;
+
+background: transparent;
+
+border: none;
+
+text-align: left;
+
+padding: 0;
+
+white-space: nowrap;
+
+overflow: hidden;
+
+text-overflow: ellipsis;
+
+flex: 1;
+
+}
+
+.history-item:hover { opacity: 0.8; }
+
+
+
+.history-actions { display: flex; gap: 6px; }
+
+
+
+.action-btn {
+
+background: transparent;
+
+border: none;
+
+cursor: pointer;
+
+font-size: 11px;
+
+font-weight: bold;
+
+padding: 2px 5px;
+
+border-radius: 3px;
+
+}
+
+.btn-rename { color: var(--string); }
+
+.btn-rename:hover { background: rgba(165,214,255,0.1); }
+
+
+
+.btn-delete { color: var(--err-color); }
+
+.btn-delete:hover { background: rgba(255,123,114,0.1); }
+
+
+
+.key-panel {
+
+background: #010409;
+
+border: 1px solid var(--border-color);
+
+padding: 12px;
+
+border-radius: 6px;
+
+margin: 10px 0;
+
+max-width: 900px;
+
+}
+
+
+
+.key-input {
+
+width: 100%;
+
+background: #161b22;
+
+border: 1px solid var(--border-color);
+
+color: #fff;
+
+padding: 8px;
+
+font-family: inherit;
+
+font-size: 13px;
+
+border-radius: 4px;
+
+margin-top: 6px;
+
+outline: none;
+
+}
+
+.key-input:focus { border-color: var(--mode-tec); }
+
+
+
+.key-btn {
+
+background: var(--mode-tec);
+
+color: #000;
+
+border: none;
+
+padding: 6px 12px;
+
+font-weight: bold;
+
+border-radius: 4px;
+
+cursor: pointer;
+
+margin-top: 8px;
+
+font-family: inherit;
+
+}
+
+.key-btn:hover { filter: brightness(1.1); }
+
+
+
+.key-btn-danger {
+
+background: var(--err-color);
+
+color: #fff;
+
+border: none;
+
+padding: 6px 12px;
+
+font-weight: bold;
+
+border-radius: 4px;
+
+cursor: pointer;
+
+margin-top: 8px;
+
+font-family: inherit;
+
+}
+
+.key-btn-danger:hover { filter: brightness(1.1); }
+
+
+
+.log-entry { margin-bottom: 16px; word-break: break-word; overflow-wrap: break-word; max-width: 900px; }
+
+
+
+.user-line {
+
+color: var(--user-prompt);
+
+font-weight: bold;
+
+margin-top: 10px;
+
+display: block;
+
+word-break: break-word;
+
+overflow-wrap: break-word;
+
+}
+
+
+
+.ia-response {
+
+color: var(--text-main);
+
+margin-top: 5px;
+
+padding-left: 12px;
+
+border-left: 2px solid var(--border-color);
+
+word-break: break-word;
+
+overflow-wrap: break-word;
+
+}
+
+
+
+.ia-response strong { color: var(--function); font-weight: bold; }
+
+.ia-response ul, .ia-response ol { padding-left: 20px; margin: 6px 0; }
+
+.ia-response li { margin-bottom: 4px; }
+
+
+
+.terminal pre {
+
+background-color: #010409 !important;
+
+border-radius: 6px;
+
+padding: 10px !important;
+
+margin: 8px 0 !important;
+
+border: 1px solid var(--border-color);
+
+overflow-x: auto;
+
+white-space: pre-wrap;
+
+word-break: break-all;
+
+max-width: 850px;
+
+}
+
+.terminal code { font-family: 'Consolas', monospace !important; font-size: 13px !important; }
+
+.ia-response p code {
+
+background-color: rgba(110,118,129,0.2);
+
+padding: 2px 6px;
+
+border-radius: 4px;
+
+color: var(--string);
+
+font-weight: bold;
+
+word-break: break-all;
+
+}
+
+
+
+.err-response {
+
+color: var(--err-color);
+
+background-color: rgba(255, 123, 114, 0.1);
+
+padding: 8px;
+
+border-radius: 4px;
+
+margin-top: 5px;
+
+max-width: 900px;
+
+}
+
+
+
+.img-result {
+
+max-width: 512px;
+
+border-radius: 8px;
+
+margin-top: 10px;
+
+border: 2px solid var(--border-color);
+
+display: block;
+
+}
+
+
+
+#input-line {
+
+display: flex;
+
+align-items: center;
+
+margin-top: 10px;
+
+font-family: 'Consolas', monospace;
+
+max-width: 900px;
+
+}
+
+
+
+#prompt-symbol {
+
+color: var(--user-prompt);
+
+font-weight: bold;
+
+margin-right: 8px;
+
+white-space: nowrap;
+
+}
+
+
+
+#terminal-input {
+
+flex: 1;
+
+background: transparent;
+
+border: none;
+
+color: #fff;
+
+font-family: inherit;
+
+font-size: 14px;
+
+outline: none;
+
+caret-color: var(--user-prompt);
+
+}
+
+</style>
+
 </head>
+
 <body>
 
-    <div id="header">
-        <span>SYS_CORE v9.15 [SECURE TERMINAL]</span>
-        <span>MODO: <span id="status-mode" style="color: var(--mode-tec);">TÉCNICO</span></span>
-        <span>STATUS: <span id="api-status-text">VERIFICANDO...</span></span>
-    </div>
 
-    <div id="main-wrapper">
-        <div id="terminal" onclick="document.getElementById('terminal-input').focus()">
-            <div id="output-area">
-                SYS_CORE v9.15 - Smart Terminal.<br>
-                Comandos: <code style="color:var(--string)">/chave</code> | <code style="color:var(--string)">/historico</code> | <code style="color:var(--string)">/novo chat</code> | <code style="color:var(--string)">/modo pessoal</code> | <code style="color:var(--string)">/criar imagem: [descrição]</code><br>--------------------------------------------------<br>
-            </div>
 
-            <div id="input-line">
-                <span id="prompt-symbol">C:\></span>
-                <input type="text" id="terminal-input" autofocus autocomplete="off">
-            </div>
-        </div>
+<div id="header">
 
-        <div id="floating-history">
-            <div class="history-header">
-                <button class="close-history" onclick="fecharHistorico()">[ X ]</button>
-            </div>
-            <div id="history-list"></div>
-        </div>
-    </div>
+<span>SYS_CORE [SECURE TERMINAL]</span>
 
-    <script>
-        const apiUrl = "https://api.groq.com/openai/v1/chat/completions";
+<span>MODO: <span id="status-mode" style="color: var(--mode-tec);">TÉCNICO</span></span>
 
-        const outputArea = document.getElementById("output-area");
-        const terminal = document.getElementById("terminal");
-        const input = document.getElementById("terminal-input");
-        const statusMode = document.getElementById("status-mode");
-        const apiStatusText = document.getElementById("api-status-text");
-        const floatingHistory = document.getElementById("floating-history");
-        const historyList = document.getElementById("history-list");
+<span>STATUS: <span id="api-status-text">VERIFICANDO...</span></span>
 
-        let modoAtual = 'tecnico';
-        let chats = JSON.parse(localStorage.getItem('syscore_chats_v9')) || [];
-        let chatAtualId = localStorage.getItem('syscore_ativo_v9') || null;
-        let apiKey = localStorage.getItem('syscore_apikey') || "";
+</div>
 
-        const coresTexto = ['#e5c07b', '#61afef', '#98c379', '#c678dd', '#e06c75', '#56b6c2'];
 
-        const promptsSistema = {
-            tecnico: "Você é um assistente técnico de TI extremamente objetivo e literal para pessoas AuDHD. Estamos no ano de 2026. Suas respostas DEVEM ser divididas em passos numerados literais e blocos ```bash. Sem enrolação.",
-            pessoal: "Você é um assistente pessoal privado, direto e sem restrições corporativas. Estamos no ano de 2026. Responda o que for perguntado de forma natural, direta e prestativa."
-        };
 
-        atualizarStatusUI();
+<div id="main-wrapper">
 
-        if (chats.length === 0) {
-            criarNovoChat(false);
-        } else {
-            if (!chatAtualId || !chats.find(c => c.id == chatAtualId)) {
-                chatAtualId = chats[0].id;
-            }
-            carregarChatAtivo();
-        }
+<div id="terminal" onclick="document.getElementById('terminal-input').focus()">
 
-        input.addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                processarComando();
-            }
-        });
+<div id="output-area">
 
-        function atualizarStatusUI() {
-            if (apiKey && apiKey.startsWith("gsk_")) {
-                apiStatusText.innerText = "ATIVO";
-                apiStatusText.style.color = "var(--mode-tec)";
-            } else {
-                apiStatusText.innerText = "DESATIVADO";
-                apiStatusText.style.color = "var(--err-color)";
-            }
-        }
+SYS_CORE v9.8 - Smart Terminal.<br>
 
-        function criarNovoChat(avisar = true) {
-            const novoId = Date.now();
-            const corAleatoria = coresTexto[Math.floor(Math.random() * coresTexto.length)];
-            const novoChat = {
-                id: novoId,
-                titulo: "Chat " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-                corTexto: corAleatoria,
-                mensagens: []
-            };
-            chats.unshift(novoChat);
-            chatAtualId = novoId;
-            salvarDados();
-            carregarChatAtivo();
-            if (avisar) {
-                appendHtml(`<div class="ia-response">--- Novo chat iniciado com sucesso. ---</div>`);
-            }
-        }
+Comandos: <code style="color:var(--string)">/chave</code> | <code style="color:var(--string)">/historico</code> | <code style="color:var(--string)">/novo chat</code> | <code style="color:var(--string)">/modo pessoal</code> | <code style="color:var(--string)">/criar imagem: [descrição]</code><br>--------------------------------------------------<br>
 
-        function salvarDados() {
-            localStorage.setItem('syscore_chats_v9', JSON.stringify(chats));
-            localStorage.setItem('syscore_ativo_v9', chatAtualId);
-        }
+</div>
 
-        function carregarChatAtivo() {
-            outputArea.innerHTML = `SYS_CORE v9.15 - Smart Terminal.<br>Comandos: <code style="color:var(--string)">/chave</code> | <code style="color:var(--string)">/historico</code> | <code style="color:var(--string)">/novo chat</code> | <code style="color:var(--string)">/modo pessoal</code> | <code style="color:var(--string)">/criar imagem: [descrição]</code><br>--------------------------------------------------<br>`;
-            const chat = chats.find(c => c.id == chatAtualId);
-            if (!chat) return;
 
-            chat.mensagens.forEach(msg => {
-                if (msg.role === 'user') {
-                    appendHtml(`<span class="user-line">C:\\> ${escapeHtml(msg.content)}</span>`);
-                } else if (msg.role === 'assistant') {
-                    if (msg.content.startsWith('<img ')) {
-                        appendHtml(msg.content);
-                    } else {
-                        const htmlFormatado = marked.parse(msg.content);
-                        appendHtml(`<div class="ia-response">${htmlFormatado}</div>`);
-                    }
-                }
-            });
-            fecharHistorico();
-        }
 
-        function abrirPainelchave() {
-            const painelDiv = document.createElement('div');
-            painelDiv.classList.add('key-panel');
+<div id="input-line">
 
-            if (apiKey) {
-                painelDiv.innerHTML = `
-                    <strong>STATUS DA CHAVE:</strong> <span style="color:var(--mode-tec)">ATIVA (••••${apiKey.slice(-4)})</span><br>
-                    <button class="key-btn-danger" onclick="apagarChave()">[ DESATIVAR E APAGAR ]</button>
-                `;
-            } else {
-                painelDiv.innerHTML = `
-                    <strong>CONFIGURAR CHAVE DE API (GROQ):</strong><br>
-                    <input type="password" id="input-new-key" class="key-input" placeholder="Cole sua chave aqui (gsk_...)">
-                    <br>
-                    <button class="key-btn" onclick="salvarChave()">[ ATIVAR CHAVE ]</button>
-                `;
-            }
+<span id="prompt-symbol">C:\></span>
 
-            outputArea.appendChild(painelDiv);
-            terminal.scrollTop = terminal.scrollHeight;
+<input type="text" id="terminal-input" autofocus autocomplete="off">
 
-            setTimeout(() => {
-                const inputKey = document.getElementById('input-new-key');
-                if (inputKey) {
-                    inputKey.focus();
-                }
-            }, 50);
-        }
+</div>
 
-        window.salvarChave = function() {
-            let val = document.getElementById('input-new-key').value.trim();
-            
-            // Auto-correção caso o celular coloque maiúscula
-            if (val.startsWith("Gsk_") || val.startsWith("GSK_")) {
-                val = "gsk_" + val.substring(4);
-            }
+</div>
 
-            if (val.startsWith("gsk_")) {
-                localStorage.setItem('syscore_apikey', val);
-                apiKey = val;
-                atualizarStatusUI();
-                appendHtml(`<div class="ia-response" style="color:var(--mode-tec)">--- Chave de API salva e ativada com sucesso! ---</div>`);
-            } else {
-                appendHtml(`<div class="err-response">Erro: A chave da Groq precisa começar com "gsk_".</div>`);
-            }
-        };
 
-        window.apagarChave = function() {
-            if (confirm("Deseja realmente desativar e apagar a chave de API?")) {
-                localStorage.removeItem('syscore_apikey');
-                apiKey = "";
-                atualizarStatusUI();
-                appendHtml(`<div class="err-response">--- Chave de API desativada e apagada. ---</div>`);
-            }
-        };
 
-        function abrirHistorico() {
-            historyList.innerHTML = '';
-            chats.forEach((chat) => {
-                const row = document.createElement('div');
-                row.classList.add('history-row');
+<div id="floating-history">
 
-                const item = document.createElement('button');
-                item.classList.add('history-item');
-                item.style.color = chat.corTexto;
-                item.innerHTML = `•\\> ${escapeHtml(chat.titulo)}`;
-                item.onclick = () => {
-                    chatAtualId = chat.id;
-                    salvarDados();
-                    carregarChatAtivo();
-                };
+<div class="history-header">
 
-                const actions = document.createElement('div');
-                actions.classList.add('history-actions');
+<button class="close-history" onclick="fecharHistorico()">[ X ]</button>
 
-                const btnRename = document.createElement('button');
-                btnRename.classList.add('action-btn', 'btn-rename');
-                btnRename.innerText = '[RENAME]';
-                btnRename.onclick = (e) => {
-                    e.stopPropagation();
-                    const novoNome = prompt("Digite o novo nome para este chat:", chat.titulo);
-                    if (novoNome && novoNome.trim() !== "") {
-                        chat.titulo = novoNome.trim();
-                        salvarDados();
-                        abrirHistorico();
-                    }
-                };
+</div>
 
-                const btnDelete = document.createElement('button');
-                btnDelete.classList.add('action-btn', 'btn-delete');
-                btnDelete.innerText = '[APAGAR]';
-                btnDelete.onclick = (e) => {
-                    e.stopPropagation();
-                    if (confirm(`Deseja realmente apagar o chat "${chat.titulo}"?`)) {
-                        chats = chats.filter(c => c.id !== chat.id);
-                        if (chats.length === 0) {
-                            criarNovoChat(false);
-                        } else if (chatAtualId == chat.id) {
-                            chatAtualId = chats[0].id;
-                        }
-                        salvarDados();
-                        carregarChatAtivo();
-                        abrirHistorico();
-                    }
-                };
+<div id="history-list"></div>
 
-                actions.appendChild(btnRename);
-                actions.appendChild(btnDelete);
+</div>
 
-                row.appendChild(item);
-                row.appendChild(actions);
-                historyList.appendChild(row);
-            });
-            floatingHistory.classList.add('active');
-        }
+</div>
 
-        function fecharHistorico() {
-            floatingHistory.classList.remove('active');
-        }
 
-        function appendHtml(html) {
-            const div = document.createElement('div');
-            div.classList.add('log-entry');
-            div.innerHTML = html;
-            outputArea.appendChild(div);
-            terminal.scrollTop = terminal.scrollHeight;
-        }
 
-        async function gerarImagem(promptText) {
-            appendHtml(`<div class="ia-response">⚙️ Gerando imagem... (Aguarde, conectando ao servidor gratuito)</div>`);
+<script>
 
-            // Limita o texto para não criar um URL excessivamente longo
-            let promptCurto = promptText.split(' ').slice(0, 15).join(' ');
-            const promptFinal = encodeURIComponent(promptCurto + ", highly detailed, masterpiece");
-            const seed = Math.floor(Math.random() * 100000); // Força uma imagem nova sempre
-            
-            // Usamos a versão base do URL sem forçar resolução (causava quebra no servidor deles)
-            const imageUrl = `[https://image.pollinations.ai/prompt/$](https://image.pollinations.ai/prompt/$){promptFinal}?nologo=true&seed=${seed}`;
+const apiUrl = "https://api.groq.com/openai/v1/chat/completions";
 
-            const img = new Image();
-            img.src = imageUrl;
-            img.onload = () => {
-                const imgHtml = `<img src="${imageUrl}" class="img-result">`;
-                appendHtml(imgHtml);
-                const chat = chats.find(c => c.id == chatAtualId);
-                if (chat) {
-                    chat.mensagens.push({ role: 'assistant', content: imgHtml });
-                    salvarDados();
-                }
-            };
-            img.onerror = () => {
-                appendHtml(`<div class="err-response">[ERRO] O servidor de imagens gratuitas não respondeu. Tente enviar um texto mais curto.</div>`);
-            };
-        }
 
-        async function processarComando() {
-            let texto = input.value.trim();
-            if (!texto) return;
 
-            input.value = "";
+const outputArea = document.getElementById("output-area");
 
-            if (texto.toLowerCase() === '/chave') {
-                appendHtml(`<span class="user-line">C:\\> /chave</span>`);
-                abrirPainelchave();
-                return;
-            }
+const terminal = document.getElementById("terminal");
 
-            if (texto.toLowerCase() === '/historico') {
-                appendHtml(`<span class="user-line">C:\\> /historico</span>`);
-                abrirHistorico();
-                return;
-            }
+const input = document.getElementById("terminal-input");
 
-            if (texto.toLowerCase() === '/novo chat') {
-                criarNovoChat(true);
-                return;
-            }
+const statusMode = document.getElementById("status-mode");
 
-            if (texto.toLowerCase().startsWith('/criar imagem:')) {
-                appendHtml(`<span class="user-line">C:\\> ${escapeHtml(texto)}</span>`);
-                const chat = chats.find(c => c.id == chatAtualId);
-                if (chat.mensagens.length === 0) {
-                    chat.titulo = texto.length > 20 ? texto.substring(0, 20) + "..." : texto;
-                }
-                chat.mensagens.push({ role: 'user', content: texto });
-                salvarDados();
-                const promptDesc = texto.split(':').slice(1).join(':').trim();
-                gerarImagem(promptDesc);
-                return;
-            }
+const apiStatusText = document.getElementById("api-status-text");
 
-            if (texto.startsWith('/modo')) {
-                const comando = texto.split(' ');
-                if (comando[1] === 'pessoal') {
-                    modoAtual = 'pessoal';
-                    statusMode.innerText = "PESSOAL";
-                    statusMode.style.color = 'var(--mode-pes)';
-                    appendHtml(`<span class="user-line">C:\\> ${escapeHtml(texto)}</span>`);
-                    appendHtml(`<div class="ia-response">--- Trocado para MODO PESSOAL. ---</div>`);
-                    return;
-                } else if (comando[1] === 'tecnico' || comando[2] === 'default') {
-                    modoAtual = 'tecnico';
-                    statusMode.innerText = "TÉCNICO";
-                    statusMode.style.color = 'var(--mode-tec)';
-                    appendHtml(`<span class="user-line">C:\\> ${escapeHtml(texto)}</span>`);
-                    appendHtml(`<div class="ia-response">--- Trocado para MODO TÉCNICO. ---</div>`);
-                    return;
-                } else {
-                    appendHtml(`<span class="user-line">C:\\> ${escapeHtml(texto)}</span>`);
-                    appendHtml(`<div class="err-response">Comando inválido. Use: /modo pessoal OU /modo tecnico</div>`);
-                    return;
-                }
-            }
+const floatingHistory = document.getElementById("floating-history");
 
-            if (!apiKey) {
-                apiKey = localStorage.getItem('syscore_apikey') || "";
-                atualizarStatusUI();
-                if (!apiKey) {
-                    appendHtml(`<span class="user-line">C:\\> ${escapeHtml(texto)}</span>`);
-                    appendHtml(`<div class="err-response">[ERRO] Nenhuma chave de API configurada. Digite <code>/chave</code> para cadastrar sua chave.</div>`);
-                    return;
-                }
-            }
+const historyList = document.getElementById("history-list");
 
-            appendHtml(`<span class="user-line">C:\\> ${escapeHtml(texto)}</span>`);
 
-            const chat = chats.find(c => c.id == chatAtualId);
 
-            if (chat.mensagens.length === 0) {
-                chat.titulo = texto.length > 20 ? texto.substring(0, 20) + "..." : texto;
-            }
+let modoAtual = 'tecnico';
 
-            chat.mensagens.push({ role: 'user', content: texto });
-            salvarDados();
+let chats = JSON.parse(localStorage.getItem('syscore_chats_v9')) || [];
 
-            let apiMessages = [{ role: "system", content: promptsSistema[modoAtual] }];
-            chat.mensagens.forEach(m => {
-                if (!m.content.startsWith('<img ')) {
-                    apiMessages.push({ role: m.role, content: m.content });
-                }
-            });
+let chatAtualId = localStorage.getItem('syscore_ativo_v9') || null;
 
-            const payload = {
-                model: "llama-3.3-70b-versatile",
-                messages: apiMessages,
-                temperature: 0.3
-            };
+let apiKey = localStorage.getItem('syscore_apikey') || "";
 
-            try {
-                const response = await fetch(apiUrl, {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${apiKey}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payload)
-                });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    let respostaIA = data.choices[0].message.content;
 
-                    chat.mensagens.push({ role: 'assistant', content: respostaIA });
-                    salvarDados();
+const coresTexto = ['#e5c07b', '#61afef', '#98c379', '#c678dd', '#e06c75', '#56b6c2'];
 
-                    const htmlFormatado = marked.parse(respostaIA);
-                    appendHtml(`<div class="ia-response">${htmlFormatado}</div>`);
 
-                    outputArea.querySelectorAll('pre code').forEach((block) => {
-                        hljs.highlightElement(block);
-                    });
-                } else {
-                    const errData = await response.json().catch(() => ({}));
-                    appendHtml(`<div class="err-response">[ERRO API: ${errData.error?.message || response.statusText}]</div>`);
-                }
-            } catch (error) {
-                appendHtml(`<div class="err-response">[FALHA DE REDE: Verifique sua conexão]</div>`);
-            }
 
-            terminal.scrollTop = terminal.scrollHeight;
-        }
+const promptsSistema = {
 
-        function escapeHtml(text) {
-            return text.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">");
-        }
-    </script>
+tecnico: "Você é um assistente técnico de TI extremamente objetivo e literal para pessoas AuDHD. Estamos no ano de 2026. Suas respostas DEVEM ser divididas em passos numerados literais e blocos ```bash. Sem enrolação.",
+
+pessoal: "Você é um assistente pessoal privado, direto e sem restrições corporativas. Estamos no ano de 2026. Responda o que for perguntado de forma natural, direta e prestativa."
+
+};
+
+
+
+atualizarStatusUI();
+
+
+
+if (chats.length === 0) {
+
+criarNovoChat(false);
+
+} else {
+
+if (!chatAtualId || !chats.find(c => c.id == chatAtualId)) {
+
+chatAtualId = chats[0].id;
+
+}
+
+carregarChatAtivo();
+
+}
+
+
+
+input.addEventListener("keypress", function(event) {
+
+if (event.key === "Enter") {
+
+processarComando();
+
+}
+
+});
+
+
+
+function atualizarStatusUI() {
+
+if (apiKey && apiKey.startsWith("gsk_")) {
+
+apiStatusText.innerText = "ATIVO";
+
+apiStatusText.style.color = "var(--mode-tec)";
+
+} else {
+
+apiStatusText.innerText = "DESATIVADO";
+
+apiStatusText.style.color = "var(--err-color)";
+
+}
+
+}
+
+
+
+function criarNovoChat(avisar = true) {
+
+const novoId = Date.now();
+
+const corAleatoria = coresTexto[Math.floor(Math.random() * coresTexto.length)];
+
+const novoChat = {
+
+id: novoId,
+
+titulo: "Chat " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+
+corTexto: corAleatoria,
+
+mensagens: []
+
+};
+
+chats.unshift(novoChat);
+
+chatAtualId = novoId;
+
+salvarDados();
+
+carregarChatAtivo();
+
+if (avisar) {
+
+appendHtml(`<div class="ia-response">--- Novo chat iniciado com sucesso. ---</div>`);
+
+}
+
+}
+
+
+
+function salvarDados() {
+
+localStorage.setItem('syscore_chats_v9', JSON.stringify(chats));
+
+localStorage.setItem('syscore_ativo_v9', chatAtualId);
+
+}
+
+
+
+function carregarChatAtivo() {
+
+outputArea.innerHTML = `SYS_CORE v9.8 - Smart Terminal.<br>Comandos: <code style="color:var(--string)">/chave</code> | <code style="color:var(--string)">/historico</code> | <code style="color:var(--string)">/novo chat</code> | <code style="color:var(--string)">/modo pessoal</code> | <code style="color:var(--string)">/criar imagem: [descrição]</code><br>--------------------------------------------------<br>`;
+
+const chat = chats.find(c => c.id == chatAtualId);
+
+if (!chat) return;
+
+
+
+chat.mensagens.forEach(msg => {
+
+if (msg.role === 'user') {
+
+appendHtml(`<span class="user-line">C:\\> ${escapeHtml(msg.content)}</span>`);
+
+} else if (msg.role === 'assistant') {
+
+if (msg.content.startsWith('<img ')) {
+
+appendHtml(msg.content);
+
+} else {
+
+const htmlFormatado = marked.parse(msg.content);
+
+appendHtml(`<div class="ia-response">${htmlFormatado}</div>`);
+
+}
+
+}
+
+});
+
+fecharHistorico();
+
+}
+
+
+
+function abrirPainelchave() {
+
+const painelDiv = document.createElement('div');
+
+painelDiv.classList.add('key-panel');
+
+
+
+if (apiKey) {
+
+painelDiv.innerHTML = `
+
+<strong>STATUS DA CHAVE:</strong> <span style="color:var(--mode-tec)">ATIVA (••••${apiKey.slice(-4)})</span><br>
+
+<button class="key-btn-danger" onclick="apagarChave()">[ DESATIVAR E APAGAR ]</button>
+
+`;
+
+} else {
+
+painelDiv.innerHTML = `
+
+<strong>CONFIGURAR CHAVE DE API (GROQ):</strong><br>
+
+<input type="password" id="input-new-key" class="key-input" placeholder="Cole sua chave aqui (gsk_...)">
+
+<br>
+
+<button class="key-btn" onclick="salvarChave()">[ ATIVAR CHAVE ]</button>
+
+`;
+
+}
+
+
+
+outputArea.appendChild(painelDiv);
+
+terminal.scrollTop = terminal.scrollHeight;
+
+
+
+setTimeout(() => {
+
+const inputKey = document.getElementById('input-new-key');
+
+if (inputKey) {
+
+inputKey.focus();
+
+}
+
+}, 50);
+
+}
+
+
+
+window.salvarChave = function() {
+
+const val = document.getElementById('input-new-key').value.trim();
+
+if (val.startsWith("gsk_")) {
+
+localStorage.setItem('syscore_apikey', val);
+
+apiKey = val;
+
+atualizarStatusUI();
+
+appendHtml(`<div class="ia-response" style="color:var(--mode-tec)">--- Chave de API salva e ativada com sucesso! ---</div>`);
+
+} else {
+
+appendHtml(`<div class="err-response">Erro: A chave da Groq precisa começar com "gsk_".</div>`);
+
+}
+
+};
+
+
+
+window.apagarChave = function() {
+
+if (confirm("Deseja realmente desativar e apagar a chave de API?")) {
+
+localStorage.removeItem('syscore_apikey');
+
+apiKey = "";
+
+atualizarStatusUI();
+
+appendHtml(`<div class="err-response">--- Chave de API desativada e apagada. ---</div>`);
+
+}
+
+};
+
+
+
+function abrirHistorico() {
+
+historyList.innerHTML = '';
+
+chats.forEach((chat) => {
+
+const row = document.createElement('div');
+
+row.classList.add('history-row');
+
+
+
+const item = document.createElement('button');
+
+item.classList.add('history-item');
+
+item.style.color = chat.corTexto;
+
+item.innerHTML = `•\\> ${escapeHtml(chat.titulo)}`;
+
+item.onclick = () => {
+
+chatAtualId = chat.id;
+
+salvarDados();
+
+carregarChatAtivo();
+
+};
+
+
+
+const actions = document.createElement('div');
+
+actions.classList.add('history-actions');
+
+
+
+const btnRename = document.createElement('button');
+
+btnRename.classList.add('action-btn', 'btn-rename');
+
+btnRename.innerText = '[RENAME]';
+
+btnRename.onclick = (e) => {
+
+e.stopPropagation();
+
+const novoNome = prompt("Digite o novo nome para este chat:", chat.titulo);
+
+if (novoNome && novoNome.trim() !== "") {
+
+chat.titulo = novoNome.trim();
+
+salvarDados();
+
+abrirHistorico();
+
+}
+
+};
+
+
+
+const btnDelete = document.createElement('button');
+
+btnDelete.classList.add('action-btn', 'btn-delete');
+
+btnDelete.innerText = '[APAGAR]';
+
+btnDelete.onclick = (e) => {
+
+e.stopPropagation();
+
+if (confirm(`Deseja realmente apagar o chat "${chat.titulo}"?`)) {
+
+chats = chats.filter(c => c.id !== chat.id);
+
+if (chats.length === 0) {
+
+criarNovoChat(false);
+
+} else if (chatAtualId == chat.id) {
+
+chatAtualId = chats[0].id;
+
+}
+
+salvarDados();
+
+carregarChatAtivo();
+
+abrirHistorico();
+
+}
+
+};
+
+
+
+actions.appendChild(btnRename);
+
+actions.appendChild(btnDelete);
+
+
+
+row.appendChild(item);
+
+row.appendChild(actions);
+
+historyList.appendChild(row);
+
+});
+
+floatingHistory.classList.add('active');
+
+}
+
+
+
+function fecharHistorico() {
+
+floatingHistory.classList.remove('active');
+
+}
+
+
+
+function appendHtml(html) {
+
+const div = document.createElement('div');
+
+div.classList.add('log-entry');
+
+div.innerHTML = html;
+
+outputArea.appendChild(div);
+
+terminal.scrollTop = terminal.scrollHeight;
+
+}
+
+
+
+async function gerarImagem(promptText) {
+
+appendHtml(`<div class="ia-response">⚙️ Gerando imagem... (Aguarde)</div>`);
+
+
+
+// Pega apenas as primeiras 15 palavras se o texto for muito longo, para não estourar a URL
+
+let promptCurto = promptText.split(' ').slice(0, 15).join(' ');
+
+const promptEncoded = encodeURIComponent(promptCurto);
+
+const imageUrl = `https://image.pollinations.ai/prompt/${promptEncoded}?width=512&height=512&nologo=true`;
+
+
+
+const img = new Image();
+
+img.src = imageUrl;
+
+img.onload = () => {
+
+const imgHtml = `<img src="${imageUrl}" class="img-result">`;
+
+appendHtml(imgHtml);
+
+const chat = chats.find(c => c.id == chatAtualId);
+
+if (chat) {
+
+chat.mensagens.push({ role: 'assistant', content: imgHtml });
+
+salvarDados();
+
+}
+
+};
+
+img.onerror = () => {
+
+appendHtml(`<div class="err-response">Erro ao carregar a imagem gerada. Tente com um texto mais curto.</div>`);
+
+};
+
+}
+
+
+
+async function processarComando() {
+
+let texto = input.value.trim();
+
+if (!texto) return;
+
+
+
+input.value = "";
+
+
+
+if (texto.toLowerCase() === '/chave') {
+
+appendHtml(`<span class="user-line">C:\\> /chave</span>`);
+
+abrirPainelchave();
+
+return;
+
+}
+
+
+
+if (texto.toLowerCase() === '/historico') {
+
+appendHtml(`<span class="user-line">C:\\> /historico</span>`);
+
+abrirHistorico();
+
+return;
+
+}
+
+
+
+if (texto.toLowerCase() === '/novo chat') {
+
+criarNovoChat(true);
+
+return;
+
+}
+
+
+
+if (texto.toLowerCase().startsWith('/criar imagem:')) {
+
+appendHtml(`<span class="user-line">C:\\> ${escapeHtml(texto)}</span>`);
+
+const chat = chats.find(c => c.id == chatAtualId);
+
+if (chat.mensagens.length === 0) {
+
+chat.titulo = texto.length > 20 ? texto.substring(0, 20) + "..." : texto;
+
+}
+
+chat.mensagens.push({ role: 'user', content: texto });
+
+salvarDados();
+
+const promptDesc = texto.split(':').slice(1).join(':').trim();
+
+gerarImagem(promptDesc);
+
+return;
+
+}
+
+
+
+if (texto.startsWith('/modo')) {
+
+const comando = texto.split(' ');
+
+if (comando[1] === 'pessoal') {
+
+modoAtual = 'pessoal';
+
+statusMode.innerText = "PESSOAL";
+
+statusMode.style.color = 'var(--mode-pes)';
+
+appendHtml(`<span class="user-line">C:\\> ${escapeHtml(texto)}</span>`);
+
+appendHtml(`<div class="ia-response">--- Trocado para MODO PESSOAL. ---</div>`);
+
+return;
+
+} else if (comando[1] === 'tecnico' || comando[2] === 'default') {
+
+modoAtual = 'tecnico';
+
+statusMode.innerText = "TÉCNICO";
+
+statusMode.style.color = 'var(--mode-tec)';
+
+appendHtml(`<span class="user-line">C:\\> ${escapeHtml(texto)}</span>`);
+
+appendHtml(`<div class="ia-response">--- Trocado para MODO TÉCNICO. ---</div>`);
+
+return;
+
+} else {
+
+appendHtml(`<span class="user-line">C:\\> ${escapeHtml(texto)}</span>`);
+
+appendHtml(`<div class="err-response">Comando inválido. Use: /modo pessoal OU /modo tecnico</div>`);
+
+return;
+
+}
+
+}
+
+
+
+if (!apiKey) {
+
+apiKey = localStorage.getItem('syscore_apikey') || "";
+
+atualizarStatusUI();
+
+if (!apiKey) {
+
+appendHtml(`<span class="user-line">C:\\> ${escapeHtml(texto)}</span>`);
+
+appendHtml(`<div class="err-response">[ERRO] Nenhuma chave de API configurada. Digite <code>/chave</code> para cadastrar sua chave.</div>`);
+
+return;
+
+}
+
+}
+
+
+
+appendHtml(`<span class="user-line">C:\\> ${escapeHtml(texto)}</span>`);
+
+
+
+const chat = chats.find(c => c.id == chatAtualId);
+
+
+
+if (chat.mensagens.length === 0) {
+
+chat.titulo = texto.length > 20 ? texto.substring(0, 20) + "..." : texto;
+
+}
+
+
+
+chat.mensagens.push({ role: 'user', content: texto });
+
+salvarDados();
+
+
+
+let apiMessages = [{ role: "system", content: promptsSistema[modoAtual] }];
+
+chat.mensagens.forEach(m => {
+
+if (!m.content.startsWith('<img ')) {
+
+apiMessages.push({ role: m.role, content: m.content });
+
+}
+
+});
+
+
+
+const payload = {
+
+model: "llama-3.3-70b-versatile",
+
+messages: apiMessages,
+
+temperature: 0.3
+
+};
+
+
+
+try {
+
+const response = await fetch(apiUrl, {
+
+method: "POST",
+
+headers: {
+
+"Authorization": `Bearer ${apiKey}`,
+
+"Content-Type": "application/json"
+
+},
+
+body: JSON.stringify(payload)
+
+});
+
+
+
+if (response.ok) {
+
+const data = await response.json();
+
+let respostaIA = data.choices[0].message.content;
+
+
+
+chat.mensagens.push({ role: 'assistant', content: respostaIA });
+
+salvarDados();
+
+
+
+const htmlFormatado = marked.parse(respostaIA);
+
+appendHtml(`<div class="ia-response">${htmlFormatado}</div>`);
+
+
+
+outputArea.querySelectorAll('pre code').forEach((block) => {
+
+hljs.highlightElement(block);
+
+});
+
+} else {
+
+const errData = await response.json().catch(() => ({}));
+
+appendHtml(`<div class="err-response">[ERRO API: ${errData.error?.message || response.statusText}]</div>`);
+
+}
+
+} catch (error) {
+
+appendHtml(`<div class="err-response">[FALHA DE REDE: Verifique sua conexão]</div>`);
+
+}
+
+
+
+terminal.scrollTop = terminal.scrollHeight;
+
+}
+
+
+
+function escapeHtml(text) {
+
+return text.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">");
+
+}
+
+</script>
+
 </body>
-</html>
+
+</html> 
