@@ -164,13 +164,6 @@
             max-width: 900px;
         }
 
-        .key-row {
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 1px dashed var(--border-color);
-        }
-        .key-row:last-child { border-bottom: none; }
-
         .key-input {
             width: 100%;
             background: #161b22;
@@ -266,7 +259,7 @@
         }
 
         .img-result { 
-            max-width: 768px; 
+            max-width: 512px; 
             border-radius: 8px; 
             margin-top: 10px; 
             border: 2px solid var(--border-color); 
@@ -303,7 +296,7 @@
 <body>
 
     <div id="header">
-        <span>SYS_CORE v9.14 [SECURE TERMINAL]</span>
+        <span>SYS_CORE v9.15 [SECURE TERMINAL]</span>
         <span>MODO: <span id="status-mode" style="color: var(--mode-tec);">TÉCNICO</span></span>
         <span>STATUS: <span id="api-status-text">VERIFICANDO...</span></span>
     </div>
@@ -311,7 +304,7 @@
     <div id="main-wrapper">
         <div id="terminal" onclick="document.getElementById('terminal-input').focus()">
             <div id="output-area">
-                SYS_CORE v9.14 - Smart Terminal.<br>
+                SYS_CORE v9.15 - Smart Terminal.<br>
                 Comandos: <code style="color:var(--string)">/chave</code> | <code style="color:var(--string)">/historico</code> | <code style="color:var(--string)">/novo chat</code> | <code style="color:var(--string)">/modo pessoal</code> | <code style="color:var(--string)">/criar imagem: [descrição]</code><br>--------------------------------------------------<br>
             </div>
 
@@ -331,7 +324,6 @@
 
     <script>
         const apiUrl = "https://api.groq.com/openai/v1/chat/completions";
-        const hfInferenceApiUrl = "https://api-inference.huggingface.co/models/prompthero/openjourney";
 
         const outputArea = document.getElementById("output-area");
         const terminal = document.getElementById("terminal");
@@ -345,7 +337,6 @@
         let chats = JSON.parse(localStorage.getItem('syscore_chats_v9')) || [];
         let chatAtualId = localStorage.getItem('syscore_ativo_v9') || null;
         let apiKey = localStorage.getItem('syscore_apikey') || "";
-        let hfApiKey = localStorage.getItem('syscore_hfapikey') || "";
 
         const coresTexto = ['#e5c07b', '#61afef', '#98c379', '#c678dd', '#e06c75', '#56b6c2'];
 
@@ -372,15 +363,9 @@
         });
 
         function atualizarStatusUI() {
-            let groqAtiva = apiKey && apiKey.startsWith("gsk_");
-            let hfAtiva = hfApiKey && hfApiKey.startsWith("hf_");
-
-            if (groqAtiva && hfAtiva) {
-                apiStatusText.innerText = "TOTALMENTE ATIVO";
+            if (apiKey && apiKey.startsWith("gsk_")) {
+                apiStatusText.innerText = "ATIVO";
                 apiStatusText.style.color = "var(--mode-tec)";
-            } else if (groqAtiva || hfAtiva) {
-                apiStatusText.innerText = "PARCIALMENTE ATIVO";
-                apiStatusText.style.color = "var(--function)";
             } else {
                 apiStatusText.innerText = "DESATIVADO";
                 apiStatusText.style.color = "var(--err-color)";
@@ -411,7 +396,7 @@
         }
 
         function carregarChatAtivo() {
-            outputArea.innerHTML = `SYS_CORE v9.14 - Smart Terminal.<br>Comandos: <code style="color:var(--string)">/chave</code> | <code style="color:var(--string)">/historico</code> | <code style="color:var(--string)">/novo chat</code> | <code style="color:var(--string)">/modo pessoal</code> | <code style="color:var(--string)">/criar imagem: [descrição]</code><br>--------------------------------------------------<br>`;
+            outputArea.innerHTML = `SYS_CORE v9.15 - Smart Terminal.<br>Comandos: <code style="color:var(--string)">/chave</code> | <code style="color:var(--string)">/historico</code> | <code style="color:var(--string)">/novo chat</code> | <code style="color:var(--string)">/modo pessoal</code> | <code style="color:var(--string)">/criar imagem: [descrição]</code><br>--------------------------------------------------<br>`;
             const chat = chats.find(c => c.id == chatAtualId);
             if (!chat) return;
 
@@ -419,12 +404,8 @@
                 if (msg.role === 'user') {
                     appendHtml(`<span class="user-line">C:\\> ${escapeHtml(msg.content)}</span>`);
                 } else if (msg.role === 'assistant') {
-                    if (msg.content.startsWith('blob:') || msg.content.startsWith('<img ')) {
-                         if (msg.content.startsWith('<img ')) {
-                             appendHtml(msg.content);
-                         } else {
-                             appendHtml(`<img src="${msg.content}" class="img-result">`);
-                         }
+                    if (msg.content.startsWith('<img ')) {
+                        appendHtml(msg.content);
                     } else {
                         const htmlFormatado = marked.parse(msg.content);
                         appendHtml(`<div class="ia-response">${htmlFormatado}</div>`);
@@ -438,59 +419,35 @@
             const painelDiv = document.createElement('div');
             painelDiv.classList.add('key-panel');
 
-            // Painel GROQ
-            let groqPanel = document.createElement('div');
-            groqPanel.classList.add('key-row');
             if (apiKey) {
-                groqPanel.innerHTML = `
-                    <strong>CHAVE GROQ (Texto):</strong> <span style="color:var(--mode-tec)">ATIVA (••••${apiKey.slice(-4)})</span><br>
-                    <button class="key-btn-danger" onclick="apagarChave()">[ DESATIVAR E APAGAR GROQ ]</button>
+                painelDiv.innerHTML = `
+                    <strong>STATUS DA CHAVE:</strong> <span style="color:var(--mode-tec)">ATIVA (••••${apiKey.slice(-4)})</span><br>
+                    <button class="key-btn-danger" onclick="apagarChave()">[ DESATIVAR E APAGAR ]</button>
                 `;
             } else {
-                groqPanel.innerHTML = `
-                    <strong>CONFIGURAR CHAVE GROQ (Texto):</strong><br>
+                painelDiv.innerHTML = `
+                    <strong>CONFIGURAR CHAVE DE API (GROQ):</strong><br>
                     <input type="password" id="input-new-key" class="key-input" placeholder="Cole sua chave aqui (gsk_...)">
                     <br>
-                    <button class="key-btn" onclick="salvarChave()">[ ATIVAR GROQ ]</button>
+                    <button class="key-btn" onclick="salvarChave()">[ ATIVAR CHAVE ]</button>
                 `;
             }
-
-            // Painel Hugging Face
-            let hfPanel = document.createElement('div');
-            hfPanel.classList.add('key-row');
-            if (hfApiKey) {
-                hfPanel.innerHTML = `
-                    <strong>CHAVE HUGGING FACE (Imagem):</strong> <span style="color:var(--mode-tec)">ATIVA (••••${hfApiKey.slice(-4)})</span><br>
-                    <button class="key-btn-danger" onclick="apagarChaveHF()">[ DESATIVAR E APAGAR HF ]</button>
-                `;
-            } else {
-                hfPanel.innerHTML = `
-                    <strong>CONFIGURAR CHAVE HUGGING FACE (Imagem):</strong><br>
-                    <input type="password" id="input-new-hfkey" class="key-input" placeholder="Cole seu Token de Acesso aqui (hf_...)">
-                    <br>
-                    <button class="key-btn" onclick="salvarChaveHF()">[ ATIVAR HF ]</button>
-                `;
-            }
-
-            painelDiv.appendChild(groqPanel);
-            painelDiv.appendChild(hfPanel);
 
             outputArea.appendChild(painelDiv);
             terminal.scrollTop = terminal.scrollHeight;
 
             setTimeout(() => {
                 const inputKey = document.getElementById('input-new-key');
-                const inputHfKey = document.getElementById('input-new-hfkey');
-                if (inputKey && !apiKey) {
+                if (inputKey) {
                     inputKey.focus();
-                } else if (inputHfKey && !hfApiKey) {
-                    inputHfKey.focus();
                 }
             }, 50);
         }
 
         window.salvarChave = function() {
             let val = document.getElementById('input-new-key').value.trim();
+            
+            // Auto-correção caso o celular coloque maiúscula
             if (val.startsWith("Gsk_") || val.startsWith("GSK_")) {
                 val = "gsk_" + val.substring(4);
             }
@@ -499,43 +456,18 @@
                 localStorage.setItem('syscore_apikey', val);
                 apiKey = val;
                 atualizarStatusUI();
-                appendHtml(`<div class="ia-response" style="color:var(--mode-tec)">--- Chave GROQ salva e ativada com sucesso! ---</div>`);
+                appendHtml(`<div class="ia-response" style="color:var(--mode-tec)">--- Chave de API salva e ativada com sucesso! ---</div>`);
             } else {
                 appendHtml(`<div class="err-response">Erro: A chave da Groq precisa começar com "gsk_".</div>`);
             }
         };
 
         window.apagarChave = function() {
-            if (confirm("Deseja realmente desativar e apagar a chave GROQ?")) {
+            if (confirm("Deseja realmente desativar e apagar a chave de API?")) {
                 localStorage.removeItem('syscore_apikey');
                 apiKey = "";
                 atualizarStatusUI();
-                appendHtml(`<div class="err-response">--- Chave GROQ desativada e apagada. ---</div>`);
-            }
-        };
-
-        window.salvarChaveHF = function() {
-            let val = document.getElementById('input-new-hfkey').value.trim();
-            if (val.startsWith("Hf_") || val.startsWith("HF_")) {
-                val = "hf_" + val.substring(3);
-            }
-
-            if (val.startsWith("hf_")) {
-                localStorage.setItem('syscore_hfapikey', val);
-                hfApiKey = val;
-                atualizarStatusUI();
-                appendHtml(`<div class="ia-response" style="color:var(--mode-tec)">--- Chave HUGGING FACE salva e ativada com sucesso! ---</div>`);
-            } else {
-                appendHtml(`<div class="err-response">Erro: O token da Hugging Face precisa começar com "hf_".</div>`);
-            }
-        };
-
-        window.apagarChaveHF = function() {
-            if (confirm("Deseja realmente desativar e apagar o token HUGGING FACE?")) {
-                localStorage.removeItem('syscore_hfapikey');
-                hfApiKey = "";
-                atualizarStatusUI();
-                appendHtml(`<div class="err-response">--- Token HUGGING FACE desativado e apagado. ---</div>`);
+                appendHtml(`<div class="err-response">--- Chave de API desativada e apagada. ---</div>`);
             }
         };
 
@@ -612,46 +544,30 @@
         }
 
         async function gerarImagem(promptText) {
-            if (!hfApiKey) {
-                appendHtml(`<div class="err-response">[ERRO] Nenhuma chave HUGGING FACE configurada. Digite <code>/chave</code> para cadastrar seu token.</div>`);
-                return;
-            }
+            appendHtml(`<div class="ia-response">⚙️ Gerando imagem... (Aguarde, conectando ao servidor gratuito)</div>`);
 
-            appendHtml(`<div class="ia-response">⚙️ Gerando imagem via Hugging Face... (Isso pode demorar um pouco, aguarde)</div>`);
+            // Limita o texto para não criar um URL excessivamente longo
+            let promptCurto = promptText.split(' ').slice(0, 15).join(' ');
+            const promptFinal = encodeURIComponent(promptCurto + ", highly detailed, masterpiece");
+            const seed = Math.floor(Math.random() * 100000); // Força uma imagem nova sempre
+            
+            // Usamos a versão base do URL sem forçar resolução (causava quebra no servidor deles)
+            const imageUrl = `[https://image.pollinations.ai/prompt/$](https://image.pollinations.ai/prompt/$){promptFinal}?nologo=true&seed=${seed}`;
 
-            let promptCurto = promptText.split(' ').slice(0, 25).join(' ');
-            const promptFinal = promptCurto + " mdjrny-v4 style, ultra-high resolution, photorealistic, 4k, highly detailed";
-
-            try {
-                const response = await fetch(hfInferenceApiUrl, {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${hfApiKey}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ inputs: promptFinal })
-                });
-
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const imageUrl = URL.createObjectURL(blob);
-                    const imgHtml = `<img src="${imageUrl}" class="img-result">`;
-                    appendHtml(imgHtml);
-                    
-                    const chat = chats.find(c => c.id == chatAtualId);
-                    if (chat) {
-                        chat.mensagens.push({ role: 'assistant', content: imgHtml });
-                        salvarDados();
-                    }
-                } else if (response.status === 503) {
-                    appendHtml(`<div class="ia-response">O modelo de imagem está acordando. Tente novamente em 20-30 segundos.</div>`);
-                } else {
-                    const errData = await response.json().catch(() => ({}));
-                    appendHtml(`<div class="err-response">[ERRO HF: ${errData.error || response.statusText}] Verifique se seu token é válido.</div>`);
+            const img = new Image();
+            img.src = imageUrl;
+            img.onload = () => {
+                const imgHtml = `<img src="${imageUrl}" class="img-result">`;
+                appendHtml(imgHtml);
+                const chat = chats.find(c => c.id == chatAtualId);
+                if (chat) {
+                    chat.mensagens.push({ role: 'assistant', content: imgHtml });
+                    salvarDados();
                 }
-            } catch (error) {
-                appendHtml(`<div class="err-response">[FALHA DE REDE: ${error.message}] O navegador bloqueou a conexão porque o arquivo foi aberto direto do computador. Use o link do GitHub Pages.</div>`);
-            }
+            };
+            img.onerror = () => {
+                appendHtml(`<div class="err-response">[ERRO] O servidor de imagens gratuitas não respondeu. Tente enviar um texto mais curto.</div>`);
+            };
         }
 
         async function processarComando() {
@@ -718,7 +634,7 @@
                 atualizarStatusUI();
                 if (!apiKey) {
                     appendHtml(`<span class="user-line">C:\\> ${escapeHtml(texto)}</span>`);
-                    appendHtml(`<div class="err-response">[ERRO] Nenhuma chave GROQ configurada para texto. Digite <code>/chave</code> para cadastrar sua chave.</div>`);
+                    appendHtml(`<div class="err-response">[ERRO] Nenhuma chave de API configurada. Digite <code>/chave</code> para cadastrar sua chave.</div>`);
                     return;
                 }
             }
@@ -736,7 +652,7 @@
 
             let apiMessages = [{ role: "system", content: promptsSistema[modoAtual] }];
             chat.mensagens.forEach(m => {
-                if (!m.content.startsWith('blob:') && !m.content.startsWith('<img ')) {
+                if (!m.content.startsWith('<img ')) {
                     apiMessages.push({ role: m.role, content: m.content });
                 }
             });
@@ -772,10 +688,10 @@
                     });
                 } else {
                     const errData = await response.json().catch(() => ({}));
-                    appendHtml(`<div class="err-response">[ERRO API GROQ: ${errData.error?.message || response.statusText}]</div>`);
+                    appendHtml(`<div class="err-response">[ERRO API: ${errData.error?.message || response.statusText}]</div>`);
                 }
             } catch (error) {
-                appendHtml(`<div class="err-response">[FALHA DE REDE TEXTO: Verifique sua conexão com a Groq]</div>`);
+                appendHtml(`<div class="err-response">[FALHA DE REDE: Verifique sua conexão]</div>`);
             }
 
             terminal.scrollTop = terminal.scrollHeight;
