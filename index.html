@@ -303,7 +303,7 @@
 <body>
 
     <div id="header">
-        <span>SYS_CORE v9.13 [SECURE TERMINAL]</span>
+        <span>SYS_CORE v9.14 [SECURE TERMINAL]</span>
         <span>MODO: <span id="status-mode" style="color: var(--mode-tec);">TÉCNICO</span></span>
         <span>STATUS: <span id="api-status-text">VERIFICANDO...</span></span>
     </div>
@@ -311,7 +311,7 @@
     <div id="main-wrapper">
         <div id="terminal" onclick="document.getElementById('terminal-input').focus()">
             <div id="output-area">
-                SYS_CORE v9.13 - Smart Terminal.<br>
+                SYS_CORE v9.14 - Smart Terminal.<br>
                 Comandos: <code style="color:var(--string)">/chave</code> | <code style="color:var(--string)">/historico</code> | <code style="color:var(--string)">/novo chat</code> | <code style="color:var(--string)">/modo pessoal</code> | <code style="color:var(--string)">/criar imagem: [descrição]</code><br>--------------------------------------------------<br>
             </div>
 
@@ -331,7 +331,6 @@
 
     <script>
         const apiUrl = "https://api.groq.com/openai/v1/chat/completions";
-        // Trocado para OpenJourney para evitar timeout e ser mais leve
         const hfInferenceApiUrl = "https://api-inference.huggingface.co/models/prompthero/openjourney";
 
         const outputArea = document.getElementById("output-area");
@@ -412,7 +411,7 @@
         }
 
         function carregarChatAtivo() {
-            outputArea.innerHTML = `SYS_CORE v9.13 - Smart Terminal.<br>Comandos: <code style="color:var(--string)">/chave</code> | <code style="color:var(--string)">/historico</code> | <code style="color:var(--string)">/novo chat</code> | <code style="color:var(--string)">/modo pessoal</code> | <code style="color:var(--string)">/criar imagem: [descrição]</code><br>--------------------------------------------------<br>`;
+            outputArea.innerHTML = `SYS_CORE v9.14 - Smart Terminal.<br>Comandos: <code style="color:var(--string)">/chave</code> | <code style="color:var(--string)">/historico</code> | <code style="color:var(--string)">/novo chat</code> | <code style="color:var(--string)">/modo pessoal</code> | <code style="color:var(--string)">/criar imagem: [descrição]</code><br>--------------------------------------------------<br>`;
             const chat = chats.find(c => c.id == chatAtualId);
             if (!chat) return;
 
@@ -651,7 +650,7 @@
                     appendHtml(`<div class="err-response">[ERRO HF: ${errData.error || response.statusText}] Verifique se seu token é válido.</div>`);
                 }
             } catch (error) {
-                appendHtml(`<div class="err-response">[FALHA DE REDE: ${error.message}] Desative o bloqueador de anúncios (ex: Brave Shields) do seu navegador, pois ele corta a conexão com a API.</div>`);
+                appendHtml(`<div class="err-response">[FALHA DE REDE: ${error.message}] O navegador bloqueou a conexão porque o arquivo foi aberto direto do computador. Use o link do GitHub Pages.</div>`);
             }
         }
 
